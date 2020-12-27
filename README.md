@@ -1,4 +1,4 @@
-# cocorido-fe3
+# Cocorido
 
 ## Project setup
 ```

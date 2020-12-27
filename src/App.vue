@@ -1,10 +1,17 @@
 <template>
-  <div id="app">
-    <div id="nav">
+  <div id="app" class="md-layout md-alignment-top-center">
+    <div
+      id="nav"
+      class="md-layout-item md-xsmall-size-95 md-small-size-80 md-size-70"
+    >
       <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
+      <router-link to="/about">About</router-link> |
+      <router-link to="/black-card-manager">Carte Nere</router-link> |
+      <router-link to="/white-card-manager">Carte Bianche</router-link>
     </div>
-    <router-view />
+    <router-view
+      class="md-layout-item md-xsmall-size-95 md-small-size-80 md-size-70"
+    />
   </div>
 </template>
 
