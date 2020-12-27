@@ -42,6 +42,7 @@ import { MdField, MdButton } from "vue-material/dist/components";
 import { factory } from "@/services/ConfigLog4j";
 import SockJS from "sockjs-client";
 import Stomp from "webstomp-client";
+import WebSocketConnector from "@/utils/WebSocket";
 
 Vue.use(MdField);
 Vue.use(MdButton);
@@ -52,41 +53,21 @@ export default Vue.extend({
   components: {},
   props: {},
   data: function() {
-    return { text: "", messages: [], stompClient: {} };
+    return { text: "", messages: [], ws: {} };
   },
   computed: {},
   methods: {
     connect: function() {
-      this.socket = new SockJS("http://localhost:8080/chat");
-      this.stompClient = Stomp.over(this.socket);
-      this.stompClient.connect(
-        {},
-        frame => {
-          this.connected = true;
-          logger.info("frame");
-          //logger.info(frame);
-          this.stompClient.subscribe("/topic/messages", this.subscribed);
-        },
-        error => {
-          logger.error(error);
-          this.connected = false;
-        }
-      );
+      this.ws = new WebSocketConnector("http://localhost:8080/chat");
     },
     send: function() {
-      logger.info("Send message2:" + this.text);
-      logger.info(`client: ${this.stompClient.connected}`);
-      if (this.stompClient && this.stompClient.connected) {
-        const msg = { text: this.text, from: "me" };
-        logger.info(JSON.stringify(msg));
-        this.stompClient.send("/app/chat", JSON.stringify(msg), {});
-      }
+      const msg = { text: this.text, from: "me" };
+      logger.info(`Send message ${msg}`);
+      this.ws.sendJson(msg);
+      logger.info(`Sent`);
     },
     disconnect: function() {
-      if (this.stompClient) {
-        this.stompClient.disconnect();
-      }
-      this.connected = false;
+      this.ws.disconnect();
     },
     subscribed: function(tick) {
       //logger.info("tick");
