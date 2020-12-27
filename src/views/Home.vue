@@ -1,7 +1,6 @@
 <template>
   <div class="home">
-    <login @joinTable="joinTable" />
-    <available-tables @joinTable="joinTable" />
+    <web-socket-test />
   </div>
 </template>
 
@@ -9,6 +8,7 @@
 import Vue from "vue";
 import Login from "@/components/Login.vue";
 import AvailableTables from "@/components/AvailableTables.vue";
+import WebSocketTest from "@/components/WebSocketTest.vue";
 import { gameService } from "@/services/GameService";
 import { localStorage } from "@/utils/LocalStorage";
 import { factory } from "@/services/ConfigLog4j";
@@ -18,8 +18,7 @@ const logger = factory.getLogger("Views.Home");
 export default Vue.extend({
   name: "Home",
   components: {
-    Login,
-    AvailableTables
+    WebSocketTest
   },
   methods: {
     joinTable: async function(tableId: number) {
