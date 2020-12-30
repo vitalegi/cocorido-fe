@@ -114,7 +114,6 @@ export default Vue.extend({
   },
   methods: {
     getPlayedWhiteCards: function() {
-      console.log(this.playedWhiteCards);
       const entry = this.playedWhiteCards.find(
         p => p.playerId == this.playerId
       );

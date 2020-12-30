@@ -1,11 +1,8 @@
 <template>
-  <md-card :class="getCssClasses()">
+  <md-card v-on:click.native="submit()" :class="getCssClasses()">
     <md-card-header>
       <div class="md-title">{{ text }}</div>
     </md-card-header>
-    <md-card-actions v-if="showButton">
-      <md-button @click="submit()">Gioca</md-button>
-    </md-card-actions>
   </md-card>
 </template>
 
@@ -25,7 +22,8 @@ export default {
   props: ["id", "showButton", "cardClass"],
   data: function() {
     return {
-      text: ""
+      text: "",
+      showConfirmationDialog: false
     };
   },
   watch: {
@@ -42,6 +40,9 @@ export default {
       return "md-layout-item md-size-100 md-xsmall-size-100 md-small-size-45 md-medium-size-30 md-large-size-20";
     },
     submit: function() {
+      if (!this.showButton) {
+        return;
+      }
       logger.info(() => `select ${this.id} white card`);
       this.$emit("select", this.id);
     },
