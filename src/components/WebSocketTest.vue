@@ -2,9 +2,6 @@
   <div>
     <div class="md-layout md-gutter md-alignment-top-center">
       <div class="md-layout-item md-size-10">
-        <md-button class="md-raised md-primary" @click="connect()"
-          >Connect</md-button
-        >
         <md-button class="md-raised md-primary" @click="disconnect()"
           >Disconnect</md-button
         >
@@ -18,8 +15,9 @@
         </md-field>
       </div>
       <div class="md-layout-item md-size-10">
-        <md-button class="md-raised md-primary" @click="send()"
-          >Invia</md-button
+        <md-button class="md-raised md-primary" @click="send()">Invia</md-button
+        ><md-button class="md-raised md-primary" @click="subscribe()"
+          >Iscriviti</md-button
         >
       </div>
     </div>
@@ -40,9 +38,9 @@
 import Vue from "vue";
 import { MdField, MdButton } from "vue-material/dist/components";
 import { factory } from "@/services/ConfigLog4j";
-import SockJS from "sockjs-client";
+import SockJS, { Message } from "sockjs-client";
 import Stomp from "webstomp-client";
-import WebSocketConnector from "@/utils/WebSocket";
+import { websocket, WebSocketConnector } from "@/utils/WebSocket";
 
 Vue.use(MdField);
 Vue.use(MdButton);
@@ -53,27 +51,28 @@ export default Vue.extend({
   components: {},
   props: {},
   data: function() {
-    return { text: "", messages: [], ws: {} };
+    return { text: "", messages: [] };
   },
   computed: {},
   methods: {
-    connect: function() {
-      this.ws = new WebSocketConnector("http://localhost:8080/chat");
-    },
     send: function() {
       const msg = { text: this.text, from: "me" };
       logger.info(`Send message ${msg}`);
-      this.ws.sendJson(msg);
+      websocket.sendJson("/app/chat", msg);
       logger.info(`Sent`);
     },
     disconnect: function() {
-      this.ws.disconnect();
+      websocket.disconnect();
     },
     subscribed: function(tick) {
-      //logger.info("tick");
-      //logger.info(tick);
       logger.info(`tick body ${tick.body}`);
       this.messages.push(JSON.parse(tick.body).text);
+    },
+    subscribe: function() {
+      websocket.subscribe("/topic/messages", msg => {
+        logger.info(`Received msg on topic ${msg.headers} - ${msg.body}`);
+        this.subscribed(msg);
+      });
     }
   }
 });

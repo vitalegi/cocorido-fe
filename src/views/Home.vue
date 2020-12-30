@@ -1,5 +1,7 @@
 <template>
   <div class="home">
+    <login @joinTable="joinTable" />
+    <available-tables @joinTable="joinTable" />
     <web-socket-test />
   </div>
 </template>
@@ -18,6 +20,8 @@ const logger = factory.getLogger("Views.Home");
 export default Vue.extend({
   name: "Home",
   components: {
+    Login,
+    AvailableTables,
     WebSocketTest
   },
   methods: {

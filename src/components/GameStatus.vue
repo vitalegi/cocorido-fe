@@ -52,6 +52,7 @@ import {
 } from "vue-material/dist/components";
 import { eventBus } from "@/utils/EventBus";
 import { boardShortPolling } from "@/utils/BoardShortPolling";
+import { boardWebSocket } from "@/utils/BoardWebSocket";
 import { localStorage } from "@/utils/LocalStorage";
 import { TimeUtil } from "@/utils/TimeUtil";
 import { factory } from "@/services/ConfigLog4j";
@@ -179,8 +180,8 @@ export default Vue.extend({
     },
     cleanupEvents() {
       logger.info("cleanup Events");
-      boardShortPolling.stopPolling();
-      eventBus.$off("GAME_ROUTE_LEAVE", boardShortPolling.stopPolling);
+      boardWebSocket.stopPolling();
+      eventBus.$off("GAME_ROUTE_LEAVE", boardWebSocket.stopPolling);
       eventBus.$off("GAME_PLAYERS", this.syncPlayers);
       eventBus.$off("GAME_TABLE_PLAYERS", this.syncTablePlayers);
       eventBus.$off("GAME_LAST_ROUND", this.syncLastRound);
@@ -191,7 +192,7 @@ export default Vue.extend({
   },
   mounted() {
     logger.info(() => `Mounted, ${this.tableId} ${this.currentPlayerId}`);
-    boardShortPolling.startPolling(this.tableId, this.currentPlayerId);
+    boardWebSocket.startPolling(this.tableId, this.currentPlayerId);
     eventBus.$on("GAME_ROUTE_LEAVE", this.cleanupEvents);
     eventBus.$on("GAME_PLAYERS", this.syncPlayers);
     eventBus.$on("GAME_TABLE_PLAYERS", this.syncTablePlayers);
@@ -202,7 +203,7 @@ export default Vue.extend({
   },
   unmounted() {
     logger.info("Unmounted");
-    boardShortPolling.stopPolling();
+    boardWebSocket.stopPolling();
     eventBus.$off("GAME_ROUTE_LEAVE", this.cleanupEvents);
     this.cleanupEvents();
   }

@@ -64,6 +64,7 @@ import {
 import { eventBus } from "@/utils/EventBus";
 import { factory } from "@/services/ConfigLog4j";
 import { boardShortPolling } from "@/utils/BoardShortPolling";
+import { boardWebSocket } from "@/utils/BoardWebSocket";
 const logger = factory.getLogger("Components.Game");
 
 Vue.use(MdDivider);
@@ -170,8 +171,8 @@ export default Vue.extend({
     },
     cleanupEvents() {
       logger.info("cleanup Events");
-      boardShortPolling.stopPolling();
-      eventBus.$off("GAME_ROUTE_LEAVE", boardShortPolling.stopPolling);
+      boardWebSocket.stopPolling();
+      eventBus.$off("GAME_ROUTE_LEAVE", boardWebSocket.stopPolling);
       eventBus.$off("PLAYER_WHITECARDS", this.syncWhiteCards);
       eventBus.$off("GAME_LAST_ROUND", this.syncLastRound);
       eventBus.$off("GAME_BLACKCARD", this.syncBlackCard);
@@ -181,8 +182,8 @@ export default Vue.extend({
   },
   mounted() {
     logger.info(() => `Mounted, ${this.tableId} ${this.playerId}`);
-    boardShortPolling.startPolling(this.tableId, this.playerId);
-    eventBus.$on("GAME_ROUTE_LEAVE", boardShortPolling.stopPolling);
+    boardWebSocket.startPolling(this.tableId, this.playerId);
+    eventBus.$on("GAME_ROUTE_LEAVE", boardWebSocket.stopPolling);
     eventBus.$on("PLAYER_WHITECARDS", this.syncWhiteCards);
     eventBus.$on("GAME_LAST_ROUND", this.syncLastRound);
     eventBus.$on("GAME_BLACKCARD", this.syncBlackCard);
