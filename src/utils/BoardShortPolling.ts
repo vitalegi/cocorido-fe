@@ -45,9 +45,17 @@ class BoardShortPolling {
     logger.debug(`getLastRound done ${round.roundId}`);
     eventBus.$emit("GAME_LAST_ROUND", round);
 
-    const players = await gameService.getRoundStatus(boardId);
-    logger.debug(`getRoundStatus done ${players.length}`);
-    eventBus.$emit("GAME_PLAYERS_STATUS", players);
+    const tablePlayers = await gameService.getTablePlayers(boardId);
+    logger.debug(`getTablePlayers done ${tablePlayers.length}`);
+    eventBus.$emit("GAME_TABLE_PLAYERS", tablePlayers);
+
+    const players = await gameService.getPlayers(boardId);
+    logger.debug(`getPlayers done ${players.length}`);
+    eventBus.$emit("GAME_PLAYERS", players);
+
+    const playedWhiteCards = await gameService.getPlayedWhiteCards(boardId);
+    logger.debug(`getPlayedWhiteCards done ${playedWhiteCards}`);
+    eventBus.$emit("GAME_ROUND_PLAYED_WHITECARDS", playedWhiteCards);
 
     const blackCard = await gameService.getBlackCard(round.blackCardId);
     logger.debug(`getBlackCard done ${blackCard.id}`);

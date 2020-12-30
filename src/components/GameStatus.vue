@@ -13,20 +13,26 @@
         <md-table-head>Azioni</md-table-head>
       </md-table-row>
 
-      <md-table-row v-for="player in players" :key="player.player.playerId">
-        <md-table-cell>{{ playerName(player) }}</md-table-cell>
-        <md-table-cell>{{ player.tablePlayer.score }}</md-table-cell>
-        <md-table-cell md-numeric>{{ cardsStatus(player) }} </md-table-cell>
+      <md-table-row
+        v-for="tablePlayer in tablePlayers"
+        :key="tablePlayer.playerId"
+      >
+        <md-table-cell>{{ playerName(tablePlayer.playerId) }}</md-table-cell>
+        <md-table-cell>{{ playerScore(tablePlayer.playerId) }}</md-table-cell>
+        <md-table-cell md-numeric
+          >{{ cardsStatus(tablePlayer.playerId) }}
+        </md-table-cell>
         <md-table-cell>{{
-          lastTimeOnline(player.tablePlayer.lastUpdate)
+          lastTimeOnline(tablePlayer.lastUpdate)
         }}</md-table-cell>
         <md-table-cell>
           <md-button
             class="md-icon-button"
             v-if="
-              isBoardOwner(playerId) && !isBoardOwner(player.player.playerId)
+              isBoardOwner(currentPlayerId) &&
+                !isBoardOwner(tablePlayer.playerId)
             "
-            @click="leaveTable(player.player.playerId)"
+            @click="leaveTable(tablePlayer.playerId)"
             ><md-icon>delete</md-icon></md-button
           >
         </md-table-cell>
@@ -63,7 +69,9 @@ export default Vue.extend({
   },
   data: function() {
     return {
+      playedWhiteCards: [],
       players: [],
+      tablePlayers: [],
       round: {},
       board: {},
       blackCard: {}
@@ -73,25 +81,42 @@ export default Vue.extend({
     expectedWhiteCards: function() {
       return this.blackCard.whitecards;
     },
-    playerId: function() {
+    currentPlayerId: function() {
       return localStorage.getPlayerId();
     }
   },
   methods: {
-    cardsStatus: function(player) {
-      if (this.isBoardMaster(player.player.playerId)) {
+    cardsStatus: function(playerId) {
+      if (this.isBoardMaster(playerId)) {
         return "-";
       }
-      return `${player.whitecards.length} /
+      const playedWhiteCards = this.playedWhiteCards.find(
+        w => w.playerId == playerId
+      );
+      if (playedWhiteCards == undefined) {
+        return "???";
+      }
+      return `${playedWhiteCards.whiteCards.length} /
           ${this.expectedWhiteCards}`;
     },
-    playerName: function(player) {
-      if (this.userTypes(player.player.playerId) != "") {
-        return `${player.player.name} (${this.userTypes(
-          player.player.playerId
-        )})`;
+    playerName: function(playerId) {
+      const userType = this.userTypes(playerId);
+      const player = this.players.find(p => p.playerId == playerId);
+      let name = "???";
+      if (player != undefined) {
+        name = player.name;
       }
-      return player.player.name;
+      if (userType != "") {
+        return `${name} (${userType})`;
+      }
+      return name;
+    },
+    playerScore: function(playerId) {
+      const tablePlayer = this.tablePlayers.find(p => p.playerId == playerId);
+      if (tablePlayer == undefined) {
+        return "???";
+      }
+      return tablePlayer.score;
     },
     lastTimeOnline: function(date) {
       const now = TimeUtil.now();
@@ -109,14 +134,19 @@ export default Vue.extend({
       return types.join(", ");
     },
     syncPlayers: function(players) {
-      players = players.sort(
-        (a, b) => b.tablePlayer.score - a.tablePlayer.score
-      );
       this.players.splice(0);
       players.forEach(player => {
         this.players.push(player);
       });
       logger.debug(`syncPlayers, done, ${this.players.length}`);
+    },
+    syncTablePlayers: function(tablePlayers) {
+      tablePlayers = tablePlayers.sort((a, b) => b.score - a.score);
+      this.tablePlayers.splice(0);
+      tablePlayers.forEach(tablePlayer => {
+        this.tablePlayers.push(tablePlayer);
+      });
+      logger.debug(`syncTablePlayers, done, ${this.tablePlayers.length}`);
     },
     syncLastRound(round) {
       Vue.set(this, "round", round);
@@ -129,6 +159,13 @@ export default Vue.extend({
     syncBlackCard(blackCard) {
       Vue.set(this, "blackCard", blackCard);
       logger.debug(`syncBlackCard done: ${this.blackCard.id}`);
+    },
+    syncPlayedWhiteCards(playedWhiteCards) {
+      this.playedWhiteCards.splice(0);
+      playedWhiteCards.forEach(entry => this.playedWhiteCards.push(entry));
+      logger.debug(
+        `syncPlayedWhiteCards done: ${this.playedWhiteCards.length}`
+      );
     },
     leaveTable(playerId) {
       logger.info(`Delete Player ${playerId}`);
@@ -144,20 +181,24 @@ export default Vue.extend({
       logger.info("cleanup Events");
       boardShortPolling.stopPolling();
       eventBus.$off("GAME_ROUTE_LEAVE", boardShortPolling.stopPolling);
-      eventBus.$off("GAME_PLAYERS_STATUS", this.syncPlayers);
+      eventBus.$off("GAME_PLAYERS", this.syncPlayers);
+      eventBus.$off("GAME_TABLE_PLAYERS", this.syncTablePlayers);
       eventBus.$off("GAME_LAST_ROUND", this.syncLastRound);
       eventBus.$off("GAME_BOARD", this.syncBoard);
       eventBus.$off("GAME_BLACKCARD", this.syncBlackCard);
+      eventBus.$off("GAME_ROUND_PLAYED_WHITECARDS", this.syncPlayedWhiteCards);
     }
   },
   mounted() {
-    logger.info(() => `Mounted, ${this.tableId} ${this.playerId}`);
-    boardShortPolling.startPolling(this.tableId, this.playerId);
+    logger.info(() => `Mounted, ${this.tableId} ${this.currentPlayerId}`);
+    boardShortPolling.startPolling(this.tableId, this.currentPlayerId);
     eventBus.$on("GAME_ROUTE_LEAVE", this.cleanupEvents);
-    eventBus.$on("GAME_PLAYERS_STATUS", this.syncPlayers);
+    eventBus.$on("GAME_PLAYERS", this.syncPlayers);
+    eventBus.$on("GAME_TABLE_PLAYERS", this.syncTablePlayers);
     eventBus.$on("GAME_LAST_ROUND", this.syncLastRound);
     eventBus.$on("GAME_BOARD", this.syncBoard);
     eventBus.$on("GAME_BLACKCARD", this.syncBlackCard);
+    eventBus.$on("GAME_ROUND_PLAYED_WHITECARDS", this.syncPlayedWhiteCards);
   },
   unmounted() {
     logger.info("Unmounted");

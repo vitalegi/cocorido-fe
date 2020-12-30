@@ -11,10 +11,10 @@
     </div>
     <!-- select winning white cards -->
     <div v-if="isBlackPlayerVoting">
-      <div v-for="p in selectedWhiteCards" :key="p.player.playerId">
+      <div v-for="p in playedWhiteCards" :key="p.playerId">
         <div class="md-layout md-alignment-top-center">
           <white-card
-            v-for="(item, id) in p.whitecards"
+            v-for="(item, id) in p.whiteCards"
             :key="id"
             :id="item"
             cardClass="md-layout-item md-size-100 md-xsmall-size-100 md-small-size-45 md-medium-size-30 md-large-size-30"
@@ -22,7 +22,7 @@
           <md-button
             v-if="isBlackPlayer"
             class="md-layout-item md-size-20"
-            @click="selectWinner(p.player.playerId)"
+            @click="selectWinner(p.playerId)"
             >Vincitore</md-button
           >
         </div>
@@ -87,7 +87,7 @@ export default Vue.extend({
       blackCard: {},
       roundId: 0,
       status: "",
-      players: []
+      playedWhiteCards: []
     };
   },
   computed: {
@@ -104,27 +104,20 @@ export default Vue.extend({
       return this.status == "WHITE_PLAYERS_CHOOSING_CARD";
     },
     shouldPlayMoreWhiteCards: function() {
-      try {
-        const playedWhitecards = this.players.filter(
-          p => p.player.playerId == this.playerId
-        )[0].whitecards.length;
-
-        return playedWhitecards < this.blackCard.whitecards;
-      } catch (e) {
-        logger.error(`Error while retrieving player: ${e}`);
-      }
-      return true;
-    },
-    selectedWhiteCards: function() {
-      const cards = [];
-      this.players
-        .filter(p => p.player.playerId != this.round.blackPlayerId)
-        .filter(p => p.whitecards.length > 0)
-        .forEach(p => cards.push(p));
-      return cards;
+      return this.getPlayedWhiteCards().length < this.blackCard.whitecards;
     }
   },
   methods: {
+    getPlayedWhiteCards: function() {
+      console.log(this.playedWhiteCards);
+      const entry = this.playedWhiteCards.find(
+        p => p.playerId == this.playerId
+      );
+      if (entry == undefined) {
+        return [];
+      }
+      return entry.whiteCards;
+    },
     selectWinner: function(playerId) {
       logger.info(() => `Winner of the round is ${playerId}`);
       gameService.selectWinner(this.tableId, playerId);
@@ -157,12 +150,12 @@ export default Vue.extend({
       Vue.set(this, "status", gameStatus);
       logger.debug(`syncGameStatus done: ${this.status}`);
     },
-    syncPlayers(players) {
-      this.players.splice(0);
-      players.forEach(player => {
-        this.players.push(player);
-      });
-      logger.debug(`syncPlayers done: ${this.players.length}`);
+    syncPlayedWhiteCards(playedWhiteCards) {
+      this.playedWhiteCards.splice(0);
+      playedWhiteCards.forEach(entry => this.playedWhiteCards.push(entry));
+      logger.debug(
+        `syncPlayedWhiteCards done: ${this.playedWhiteCards.length}`
+      );
     },
     forceNextStep() {
       logger.info(() => `Force next step`);
@@ -175,7 +168,7 @@ export default Vue.extend({
       eventBus.$off("PLAYER_WHITECARDS", this.syncWhiteCards);
       eventBus.$off("GAME_LAST_ROUND", this.syncLastRound);
       eventBus.$off("GAME_BLACKCARD", this.syncBlackCard);
-      eventBus.$off("GAME_PLAYERS_STATUS", this.syncPlayers);
+      eventBus.$off("GAME_ROUND_PLAYED_WHITECARDS", this.syncPlayedWhiteCards);
       eventBus.$off("GAME_STATUS", this.syncGameStatus);
     }
   },
@@ -186,7 +179,7 @@ export default Vue.extend({
     eventBus.$on("PLAYER_WHITECARDS", this.syncWhiteCards);
     eventBus.$on("GAME_LAST_ROUND", this.syncLastRound);
     eventBus.$on("GAME_BLACKCARD", this.syncBlackCard);
-    eventBus.$on("GAME_PLAYERS_STATUS", this.syncPlayers);
+    eventBus.$on("GAME_ROUND_PLAYED_WHITECARDS", this.syncPlayedWhiteCards);
     eventBus.$on("GAME_STATUS", this.syncGameStatus);
   },
   unmounted() {

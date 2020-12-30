@@ -36,8 +36,6 @@ export default {
   },
   methods: {
     getCssClasses: function() {
-      logger.info(`HELLO`);
-      logger.info(`css: ${this.cardClass}`);
       if (this.cardClass != null && this.cardClass != "") {
         return this.cardClass;
       }

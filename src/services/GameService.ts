@@ -242,6 +242,19 @@ export class GameService {
         return Promise.resolve(response.data);
       });
   }
+  public async getPlayedWhiteCards(
+    tableId: number
+  ): Promise<Map<number, Array<number>>> {
+    return new BackendWebService()
+      .url(`/rest/roundStatus/${tableId}/whiteCards`)
+      .responseType("json")
+      .get()
+      .headerJson()
+      .call()
+      .then(response => {
+        return Promise.resolve(response.data);
+      });
+  }
   public async getGameStatus(tableId: number): Promise<string> {
     return new BackendWebService()
       .url(`/rest/round/${tableId}`)
@@ -265,9 +278,20 @@ export class GameService {
       });
   }
 
-  public async getPlayers(tableId: number): Promise<Array<TablePlayer>> {
+  public async getTablePlayers(tableId: number): Promise<Array<TablePlayer>> {
     return new BackendWebService()
       .url(`/rest/tablePlayers/${tableId}`)
+      .responseType("json")
+      .get()
+      .headerJson()
+      .call()
+      .then(response => {
+        return Promise.resolve(response.data);
+      });
+  }
+  public async getPlayers(tableId: number): Promise<Array<TablePlayer>> {
+    return new BackendWebService()
+      .url(`/rest/players/${tableId}`)
       .responseType("json")
       .get()
       .headerJson()
