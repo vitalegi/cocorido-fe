@@ -16,22 +16,18 @@
     </div>
     <!-- select winning white cards -->
     <div v-if="isBlackPlayerVoting">
-      <div v-for="p in playedWhiteCards" :key="p.playerId">
+      <div v-for="(p, index) in getPlayedWhiteCards()" :key="p.playerId">
         <div class="md-layout md-alignment-top-center">
           <white-card
             v-for="(item, id) in p.whiteCards"
             :key="id"
             :id="item"
             cardClass="md-layout-item md-size-100 md-xsmall-size-100 md-small-size-45 md-medium-size-30 md-large-size-30"
+            @select="selectWinner(p.playerId)"
+            :showButton="isBlackPlayer"
           />
-          <md-button
-            v-if="isBlackPlayer"
-            class="md-layout-item md-size-20"
-            @click="selectWinner(p.playerId)"
-            >Vincitore</md-button
-          >
         </div>
-        <md-divider></md-divider>
+        <md-divider v-if="index < getPlayedWhiteCards().length - 1" />
       </div>
     </div>
 
@@ -109,11 +105,14 @@ export default Vue.extend({
       return this.status == "WHITE_PLAYERS_CHOOSING_CARD";
     },
     shouldPlayMoreWhiteCards: function() {
-      return this.getPlayedWhiteCards().length < this.blackCard.whitecards;
+      return this.getMyPlayedWhiteCards().length < this.blackCard.whitecards;
     }
   },
   methods: {
     getPlayedWhiteCards: function() {
+      return this.playedWhiteCards.filter(p => p.whiteCards.length > 0);
+    },
+    getMyPlayedWhiteCards: function() {
       const entry = this.playedWhiteCards.find(
         p => p.playerId == this.playerId
       );
@@ -197,4 +196,9 @@ export default Vue.extend({
 });
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.md-divider {
+  height: 2px;
+  margin: 10px;
+}
+</style>
