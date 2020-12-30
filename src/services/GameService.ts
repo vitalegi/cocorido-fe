@@ -319,6 +319,14 @@ export class GameService {
       .headerJson()
       .call();
   }
+  public changeBlackCard(tableId: number) {
+    return new BackendWebService()
+      .url(`/rest/round/${tableId}/blackCard/change`)
+      .responseType("json")
+      .patch()
+      .headerJson()
+      .call();
+  }
 }
 
 export const gameService = new GameService();

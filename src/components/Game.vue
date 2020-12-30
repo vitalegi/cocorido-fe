@@ -2,7 +2,12 @@
   <div>
     <div class="md-layout md-alignment-top-right">
       <div v-if="isBlackPlayer">
-        <md-button @click="forceNextStep()">Termina turno</md-button>
+        <md-button class="md-accent md-raised" @click="forceNextStep()"
+          >Termina turno</md-button
+        >
+        <md-button class="md-raised md-primary" @click="changeBlackCard()"
+          >Pesca carta</md-button
+        >
       </div>
     </div>
     <!-- black card -->
@@ -160,6 +165,10 @@ export default Vue.extend({
     forceNextStep() {
       logger.info(() => `Force next step`);
       gameService.updateStatus(this.tableId, true);
+    },
+    changeBlackCard() {
+      logger.info(() => `Change black card`);
+      gameService.changeBlackCard(this.tableId);
     },
     cleanupEvents() {
       logger.info("cleanup Events");

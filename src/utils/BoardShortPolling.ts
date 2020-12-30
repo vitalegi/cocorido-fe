@@ -3,7 +3,7 @@ import { eventBus } from "@/utils/EventBus";
 import { factory } from "@/services/ConfigLog4j";
 const logger = factory.getLogger("Utils.BoardShortPolling");
 
-const POLLING_INTERVAL = 2000;
+const POLLING_INTERVAL = 1000;
 
 class BoardShortPolling {
   public timerInterval: number | null = null;
