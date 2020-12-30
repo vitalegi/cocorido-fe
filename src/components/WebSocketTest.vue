@@ -8,7 +8,13 @@
       </div>
     </div>
     <div class="md-layout md-gutter md-alignment-top-center">
-      <div class="md-layout-item md-size-50">
+      <div class="md-layout-item md-size-40">
+        <md-field>
+          <label>Destination</label>
+          <md-input v-model="destination"></md-input>
+        </md-field>
+      </div>
+      <div class="md-layout-item md-size-40">
         <md-field>
           <label>Text</label>
           <md-input v-model="text"></md-input>
@@ -51,14 +57,14 @@ export default Vue.extend({
   components: {},
   props: {},
   data: function() {
-    return { text: "", messages: [] };
+    return { text: "", messages: [], destination: "/app/chat" };
   },
   computed: {},
   methods: {
     send: function() {
       const msg = { text: this.text, from: "me" };
       logger.info(`Send message ${msg}`);
-      websocket.sendJson("/app/chat", msg);
+      websocket.sendJson(this.destination, msg);
       logger.info(`Sent`);
     },
     disconnect: function() {

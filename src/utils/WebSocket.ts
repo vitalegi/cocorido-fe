@@ -116,5 +116,7 @@ export class WebSocketConnector {
   }
 }
 
-export const websocket = new WebSocketConnector("http://localhost:8080/chat");
+export const websocket = new WebSocketConnector(
+  "http://localhost:8080/websocket"
+);
 websocket.connect();
